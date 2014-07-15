@@ -3,7 +3,6 @@ package main
 import (
 	"os"
 	"time"
-	"strings"
 	"unicode/utf8"
 
 	"github.com/codegangsta/cli"
@@ -13,7 +12,7 @@ import (
 
 const interval = 10
 
-func draw(l [][]string) {
+func draw(l []Torikumi) {
 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
 
 	// head
@@ -25,7 +24,8 @@ func draw(l [][]string) {
 	// hoshitori
 	for y, v := range l {
 		x := 0
-		str := strings.Join(v," ")
+		str := v.ResultString()
+
 		for len(str)>0 {
 			c,w := utf8.DecodeRuneInString(str)
 			str = str[w:]
@@ -45,9 +45,10 @@ func mainHandler(c *cli.Context) {
 	defer termbox.Close()
 
 	ticker := time.NewTicker(interval * time.Second)
-	dat := make(chan [][]string)
+	dat := make(chan []Torikumi)
 	stop := make(chan bool)
 
+	// crawl goroutine
 	go func() {
 		for {
 			select {
@@ -63,6 +64,7 @@ func mainHandler(c *cli.Context) {
 		}
 	}()
 
+	// draw goroutine
 	go func() {
 		for r := range dat {
 			draw(r)
